@@ -1,14 +1,45 @@
 const Hypercore = require('hypercore');
 const Hyperbee = require('hyperbee');
+const DHT = require('hyperdht')
+const crypto = require('crypto')
 
-class HyperStore {
+module.exports = class HyperStore {
     constructor(dbPath) {
         this.dbPath = dbPath;
         this.core = new Hypercore(dbPath);
         this.db = new Hyperbee(this.core, {
             keyEncoding: 'utf-8',
-            valueEncoding: 'json'
+            valueEncoding: 'binary'
         });
+    }
+
+    async init() {
+        await this.db.ready();
+        let dhtSeed = (await this.get('dht-seed'))?.value;
+        if (!dhtSeed) {
+            dhtSeed = crypto.randomBytes(32)
+            await this.set('dht-seed', dhtSeed)
+        }
+        const dht = new DHT({
+            port: 40001,
+            keyPair: DHT.keyPair(dhtSeed),
+            bootstrap: [{ host: '127.0.0.1', port: 30001 }] // note boostrap points to dht that is started via cli
+        });
+        await dht.ready();
+        let rpcSeed = (await this.get('rpc-seed'))?.value
+        if (!rpcSeed) {
+            rpcSeed = crypto.randomBytes(32)
+            await hbee.put('rpc-seed', rpcSeed)
+        }
+        return { seed: rpcSeed, dht };
+    }
+
+    async get(key, opts) {
+        return this.db.get(key, opts);
+    }
+
+    async set(key, value) {
+        return this.db.put(key, value);
     }
 
     async storePrice(coinId, priceData) {
