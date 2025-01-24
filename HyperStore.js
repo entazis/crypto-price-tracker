@@ -68,9 +68,17 @@ module.exports = class HyperStore {
 
     async getLatestPrices(coinIds) {
         const prices = {};
+        //TODO is there an efficient way to fetch prices for multiple coins in a single request?
+        //TODO get the latest price for each coin
         for (const coinId of coinIds) {
-            const { value } = await this.db.get(`price:${coinId}:`);
-            prices[coinId] = value;
+            const stream = this.db.createReadStream({
+                gte: `price:${coinId}:`,
+                limit: 1
+            });
+
+            for await (const { value } of stream) {
+                prices[coinId] = JSON.parse(value.toString());
+            }
         }
         return prices;
     }
@@ -78,16 +86,19 @@ module.exports = class HyperStore {
     async getHistoricalPrices(coinIds, from, to) {
         const prices = {};
         for (const coinId of coinIds) {
-            const { value } = await this.db.get(`price:${coinId}:`, {
+            prices[coinId] = [];
+            const stream = this.db.createReadStream({
                 gte: `price:${coinId}:${from}`,
                 lte: `price:${coinId}:${to}`
             });
-            prices[coinId] = value;
+            
+            for await (const { value } of stream) {
+                prices[coinId].push(JSON.parse(value.toString()));
+            }
         }
         return prices;
     }
 
     //TODO implement a scheduling mechanism to run the data pipeline at regular intervals e.g.every 30s
     //TODO ensure the pipeline can be executed both on - demand and as a scheduled task
-    //TODO processed / stored data should be exposed via[Hypersawrm RPC](https://www.npmjs.com/package/@hyperswarm/rpc)
 }
