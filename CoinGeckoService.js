@@ -31,6 +31,9 @@ class CoinGeckoService {
         const prices = {};
 
         //TODO optimize runtime by fetching prices for all cryptos from an exchange in a single request
+        //TODO ensure you store minimal data considering that dataset might grow large
+        //TODO make sure you store necessary info about exchanges from which price is calculated
+        //TODO handle data quality issues
         for (const cryptoId of cryptoIds) {
             prices[cryptoId] = [];
 
@@ -69,19 +72,6 @@ class CoinGeckoService {
             )
         };
     }
-
-    //TODO ensure you store minimal data considering that dataset might grow large
-    //TODO make sure you store necessary info about exchanges from which price is calculated
-    //TODO handle data quality issues
-
-    //TODO the data should be stored using[Hypercore / Hyperbee databases](https://docs.pears.com/building-blocks/hypercore)
-    //TODO implement a scheduling mechanism to run the data pipeline at regular intervals e.g.every 30s
-    //TODO ensure the pipeline can be executed both on - demand and as a scheduled task
-    //TODO processed / stored data should be exposed via[Hypersawrm RPC](https://www.npmjs.com/package/@hyperswarm/rpc)
-    //TODO implement getLatestPrices(pairs: string[])
-    //TODO implement getHistoricalPrices(pairs: string[], from: number, to: number)
-
-
 }
 
 module.exports = new CoinGeckoService;
