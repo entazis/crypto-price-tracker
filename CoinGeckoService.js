@@ -7,6 +7,7 @@ class CoinGeckoService {
     vsCurrencyQuery = 'vs_currency=usd';
     orderQuery = 'order=market_cap_desc';
     getPerPageQuery = (count) => `per_page=${count}`;
+    getCoinIdsQuery = (coinIds) => `coin_ids=${coinIds.join(',')}`;
 
     //TODO create a coingecko account and get an API key
     async ping() {
@@ -24,9 +25,50 @@ class CoinGeckoService {
         return cryptos.map(crypto => crypto.id);
     }
 
-    //TODO check the coingecko API for the correct endpoint, fetch data
-    //TODO data should include prices for top 5 crypto currencies(determined by coingecko) against USDt
-    //TODO prices should be fetched from top 3 exchanges(determined by coingecko) and should calculate average price
+    async fetchTopCryptoPrices(cryptCnt = 5, exchangeCnt = 3) {
+        const exchangeIds = await this.getTopExchangeIds(exchangeCnt);
+        const cryptoIds = await this.getTopCryptoIds(cryptCnt);
+        const prices = {};
+
+        //TODO optimize runtime by fetching prices for all cryptos from an exchange in a single request
+        for (const cryptoId of cryptoIds) {
+            prices[cryptoId] = [];
+
+            for (const exchangeId of exchangeIds) {
+                try {
+                    const response = (await axios.get(
+                        `${this.apiUrl}/exchanges/${exchangeId}/tickers?${this.getCoinIdsQuery([cryptoId])}&${this.apiKeyQuery}`
+                    )).data;
+
+                    const usdtTicker = response.tickers?.find(ticker =>
+                        ticker.target === 'USDT' || ticker.target === 'UST'
+                    );
+
+                    if (usdtTicker) {
+                        prices[cryptoId].push({
+                            exchange: exchangeId,
+                            price: usdtTicker.last
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error fetching price for ${cryptoId} from ${exchangeId}:`, error.message);
+                }
+            }
+        }
+
+        return {
+            timestamp: Date.now(),
+            prices: Object.fromEntries(
+                Object.entries(prices).map(([cryptoId, exchangePrices]) => [
+                    cryptoId,
+                    {
+                        averagePrice: exchangePrices.reduce((acc, curr) => acc + curr.price, 0) / exchangePrices.length,
+                        exchanges: exchangePrices
+                    }
+                ])
+            )
+        };
+    }
 
     //TODO ensure you store minimal data considering that dataset might grow large
     //TODO make sure you store necessary info about exchanges from which price is calculated
