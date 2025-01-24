@@ -2,7 +2,7 @@
 
 require('dotenv').config();
 const RPC = require('@hyperswarm/rpc')
-const HyperStore = require('./HyperStore');
+const HyperStore = require('./services/HyperStoreService');
 
 const main = async () => {
     const hyperStore = new HyperStore('./db/rpc-server');
@@ -32,13 +32,13 @@ const main = async () => {
     });
 
     rpcServer.respond('getLatestPrices', async (reqRaw) => {
-        const {coinIds} = JSON.parse(reqRaw.toString('utf-8'));
+        const { coinIds } = JSON.parse(reqRaw.toString('utf-8'));
         const resp = await hyperStore.getLatestPrices(coinIds);
         return Buffer.from(JSON.stringify(resp), 'utf-8');
     })
 
     rpcServer.respond('getHistoricalPrices', async (reqRaw) => {
-        const {coinIds, from, to} = JSON.parse(reqRaw.toString('utf-8'));
+        const { coinIds, from, to } = JSON.parse(reqRaw.toString('utf-8'));
         const resp = await hyperStore.getHistoricalPrices(coinIds, from, to);
         return Buffer.from(JSON.stringify(resp), 'utf-8');
     })

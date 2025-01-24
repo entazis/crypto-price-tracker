@@ -4,7 +4,7 @@ const DHT = require('hyperdht')
 const crypto = require('crypto')
 const CoinGeckoService = require('./CoinGeckoService');
 
-module.exports = class HyperStore {
+module.exports = class HyperStoreService {
     constructor(dbPath) {
         this.dbPath = dbPath;
         this.core = new Hypercore(dbPath);
@@ -91,7 +91,7 @@ module.exports = class HyperStore {
                 gte: `price:${coinId}:${from}`,
                 lte: `price:${coinId}:${to}`
             });
-            
+
             for await (const { value } of stream) {
                 prices[coinId].push(JSON.parse(value.toString()));
             }
