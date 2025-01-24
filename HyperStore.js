@@ -16,6 +16,14 @@ class HyperStore {
         await this.db.put(key, priceData);
     }
     
+    async getLatestPrices(coinIds) {
+        const prices = {};
+        for (const coinId of coinIds) {
+            const { value } = await this.db.get(`price:${coinId}:`);
+            prices[coinId] = value;
+        }
+        return prices;
+    }
     //TODO implement a scheduling mechanism to run the data pipeline at regular intervals e.g.every 30s
     //TODO ensure the pipeline can be executed both on - demand and as a scheduled task
     //TODO processed / stored data should be exposed via[Hypersawrm RPC](https://www.npmjs.com/package/@hyperswarm/rpc)
