@@ -6,6 +6,11 @@ const Hypercore = require('hypercore')
 const Hyperbee = require('hyperbee')
 const crypto = require('crypto')
 
+//TODO missing ; at the end of the line
+//TODO move to separate file, env
+const dhtSeedKey = 'dht-seed'
+const hypercoreDbPath = './db/rpc-client';
+
 const main = async () => {
     const publicKey = Buffer.from(process.argv[2], 'hex');
     if (!publicKey) {
@@ -15,20 +20,17 @@ const main = async () => {
         console.log('public key:', publicKey.toString('hex'));
     }
 
-    // hyperbee db
-    const hcore = new Hypercore('./db/rpc-client')
+    //TODO move opts to constant, set from env
+    const hcore = new Hypercore(hypercoreDbPath)
     const hbee = new Hyperbee(hcore, { keyEncoding: 'utf-8', valueEncoding: 'binary' })
     await hbee.ready()
 
-    // resolved distributed hash table seed for key pair
-    let dhtSeed = (await hbee.get('dht-seed'))?.value
+    let dhtSeed = (await hbee.get(dhtSeedKey))?.value
     if (!dhtSeed) {
-        // not found, generate and store in db
         dhtSeed = crypto.randomBytes(32)
-        await hbee.put('dht-seed', dhtSeed)
+        await hbee.put(dhtSeedKey, dhtSeed)
     }
 
-    // start distributed hash table, it is used for rpc service discovery
     const dht = new DHT({
         port: 50001,
         keyPair: DHT.keyPair(dhtSeed),
@@ -47,7 +49,6 @@ const main = async () => {
     })
 
     try {
-        // Wait for DHT peer discovery
         console.log('Waiting for peer discovery...')
         await new Promise(resolve => setTimeout(resolve, 2000))
 

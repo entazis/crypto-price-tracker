@@ -1,6 +1,7 @@
 const axios = require('axios');
 
 module.exports = class CoinGeckoService {
+    //TODO move to separate file
     apiUrl = process.env.COINGECKO_API_URL;
     apiKey = process.env.COINGECKO_API_KEY;
     apiKeyQuery = `x_cg_demo_api_key=${this.apiKey}`;
@@ -14,12 +15,14 @@ module.exports = class CoinGeckoService {
     }
 
     async getTopExchangeIds(count) {
+        //TODO literal, review
         const exchanges = (await axios.get(`${this.apiUrl}/exchanges?${this.apiKeyQuery}`)).data;
         exchanges.sort((a, b) => b.trade_volume_24h_btc - a.trade_volume_24h_btc);
         return exchanges.slice(0, count).map(exchange => exchange.id);
     }
 
     async getTopCryptoIds(count) {
+        //TODO literal, review
         const cryptos = (await axios.get(`${this.apiUrl}/coins/markets?${this.vsCurrencyQuery}&${this.orderQuery}&${this.getPerPageQuery(count)}&${this.apiKeyQuery}`)).data;
         return cryptos.map(crypto => crypto.id);
     }
@@ -31,10 +34,12 @@ module.exports = class CoinGeckoService {
 
         for (const exchangeId of exchangeIds) {
             try {
+                //TODO literal, review
                 const response = (await axios.get(
                     `${this.apiUrl}/exchanges/${exchangeId}/tickers?${this.getCoinIdsQuery(coinIds)}&${this.apiKeyQuery}`
                 )).data;
 
+                //TODO set target from env
                 response.tickers?.filter(ticker =>
                     ticker.target === 'USDT' && coinIds.includes(ticker.coin_id)
                 ).map(ticker => ({

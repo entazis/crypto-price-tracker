@@ -71,6 +71,7 @@ module.exports = class HyperStoreService {
     }
 
     async storePrice(coinId, priceData) {
+        //TODO set key prefix from env
         const key = `price:${coinId}:${priceData.timestamp}`;
         await this.db.put(key, JSON.stringify(priceData));
     }
@@ -79,6 +80,7 @@ module.exports = class HyperStoreService {
         const prices = {};
         //TODO get the latest price for each coin
         for (const coinId of coinIds) {
+            //TODO set key prefix from env
             const stream = this.db.createReadStream({
                 gte: `price:${coinId}:`,
                 limit: 1
@@ -91,10 +93,12 @@ module.exports = class HyperStoreService {
         return prices;
     }
 
+    //TODO fix getting ghistorical prices
     async getHistoricalPrices(coinIds, from, to) {
         const prices = {};
         for (const coinId of coinIds) {
             prices[coinId] = [];
+            //TODO set key prefix from env
             const stream = this.db.createReadStream({
                 gte: `price:${coinId}:${from}`,
                 lte: `price:${coinId}:${to}`
