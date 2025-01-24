@@ -3,10 +3,25 @@ const axios = require('axios');
 class CoinGeckoService {
     apiUrl = process.env.COINGECKO_API_URL;
     apiKey = process.env.COINGECKO_API_KEY;
+    apiKeyQuery = `x_cg_demo_api_key=${this.apiKey}`;
+    vsCurrencyQuery = 'vs_currency=usd';
+    orderQuery = 'order=market_cap_desc';
+    getPerPageQuery = (count) => `per_page=${count}`;
 
     //TODO create a coingecko account and get an API key
     async ping() {
-        return (await axios.get(`${this.apiUrl}/ping?x_cg_demo_api_key=${this.apiKey}`));
+        return (await axios.get(`${this.apiUrl}/ping?${this.apiKeyQuery}`));
+    }
+
+    async getTopExchangeIds(count) {
+        const exchanges = (await axios.get(`${this.apiUrl}/exchanges?${this.apiKeyQuery}`)).data;
+        exchanges.sort((a, b) => b.trade_volume_24h_btc - a.trade_volume_24h_btc);
+        return exchanges.slice(0, count).map(exchange => exchange.id);
+    }
+
+    async getTopCryptoIds(count) {
+        const cryptos = (await axios.get(`${this.apiUrl}/coins/markets?${this.vsCurrencyQuery}&${this.orderQuery}&${this.getPerPageQuery(count)}&${this.apiKeyQuery}`)).data;
+        return cryptos.map(crypto => crypto.id);
     }
 
     //TODO check the coingecko API for the correct endpoint, fetch data
