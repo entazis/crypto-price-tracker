@@ -36,21 +36,42 @@ const main = async () => {
     })
     await dht.ready()
 
-    // rpc lib
-    const rpc = new RPC({ dht })
+    console.log('DHT is ready, creating RPC client...')
+    const rpc = new RPC({
+        dht,
+        timeout: 30000
+    })
 
-    // payload for request
-    const payload = { nonce: 126 }
-    const payloadRaw = Buffer.from(JSON.stringify(payload), 'utf-8')
+    const timeout = (ms) => new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Connection timeout')), ms)
+    })
 
-    // sending request and handling response
-    const respRaw = await rpc.request(publicKey, 'ping', payloadRaw)
-    const resp = JSON.parse(respRaw.toString('utf-8'))
-    console.log(resp) // { nonce: 127 }
+    try {
+        // Wait for DHT peer discovery
+        console.log('Waiting for peer discovery...')
+        await new Promise(resolve => setTimeout(resolve, 2000))
 
-    // closing connection
-    await rpc.destroy()
-    await dht.destroy()
+        console.log('Attempting to connect to server...')
+        console.log('Server public key:', publicKey.toString('hex'))
+
+        const payload = { nonce: 126 }
+        const payloadRaw = Buffer.from(JSON.stringify(payload), 'utf-8')
+
+        console.log('Sending request...')
+        const respRaw = await Promise.race([
+            rpc.request(publicKey, 'ping', payloadRaw),
+            timeout(15000)
+        ])
+        
+        const resp = JSON.parse(respRaw.toString('utf-8'))
+        console.log('Response:', resp)
+    } catch (err) {
+        console.error('Error:', err)
+    } finally {
+        console.log('Cleaning up...')
+        await rpc.destroy()
+        await dht.destroy()
+    }
 }
 
 main().catch(console.error)
