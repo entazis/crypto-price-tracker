@@ -7,6 +7,15 @@ const Hyperbee = require('hyperbee')
 const crypto = require('crypto')
 
 const main = async () => {
+    // public key of rpc server, used instead of address, the address is discovered via dht
+    const publicKey = process.argv[2];
+    if (!publicKey) {
+        console.error('Usage: node client.js <server-public-key>');
+        process.exit(1);
+    } else {
+        console.log('public key:', publicKey);
+    }
+
     // hyperbee db
     const hcore = new Hypercore('./db/rpc-client')
     const hbee = new Hyperbee(hcore, { keyEncoding: 'utf-8', valueEncoding: 'binary' })
@@ -28,9 +37,6 @@ const main = async () => {
     })
     await dht.ready()
 
-    // public key of rpc server, used instead of address, the address is discovered via dht
-    const serverPubKey = Buffer.from('763cdd329d29dc35326865c4fa9bd33a45fdc2d8d2564b11978ca0d022a44a19', 'hex')
-
     // rpc lib
     const rpc = new RPC({ dht })
 
@@ -39,8 +45,7 @@ const main = async () => {
     const payloadRaw = Buffer.from(JSON.stringify(payload), 'utf-8')
 
     // sending request and handling response
-    // see console output on server code for public key as this changes on different instances
-    const respRaw = await rpc.request(serverPubKey, 'ping', payloadRaw)
+    const respRaw = await rpc.request(publicKey, 'ping', payloadRaw)
     const resp = JSON.parse(respRaw.toString('utf-8'))
     console.log(resp) // { nonce: 127 }
 
