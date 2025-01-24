@@ -7,13 +7,12 @@ const Hyperbee = require('hyperbee')
 const crypto = require('crypto')
 
 const main = async () => {
-    // public key of rpc server, used instead of address, the address is discovered via dht
-    const publicKey = process.argv[2];
+    const publicKey = Buffer.from(process.argv[2], 'hex');
     if (!publicKey) {
         console.error('Usage: node client.js <server-public-key>');
         process.exit(1);
     } else {
-        console.log('public key:', publicKey);
+        console.log('public key:', publicKey.toString('hex'));
     }
 
     // hyperbee db
