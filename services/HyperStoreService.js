@@ -93,7 +93,6 @@ module.exports = class HyperStoreService {
         return prices;
     }
 
-    //TODO fix getting ghistorical prices
     async getHistoricalPrices(coinIds, from, to) {
         const prices = {};
         for (const coinId of coinIds) {

@@ -64,7 +64,7 @@ const main = async () => {
 
         console.log('Sending getLatestPrices request...')
         const getLatestPricesRaw = await Promise.race([
-            rpc.request(publicKey, 'getLatestPrices', Buffer.from(JSON.stringify({ coinIds: ['BTC', 'ETH'] }), 'utf-8')),
+            rpc.request(publicKey, 'getLatestPrices', Buffer.from(JSON.stringify({ coinIds: ['bitcoin', 'ethereum'] }), 'utf-8')),
             timeout(15000)
         ])
         const latestPrices = JSON.parse(getLatestPricesRaw.toString('utf-8'))
@@ -72,7 +72,7 @@ const main = async () => {
 
         console.log('Sending getHistoricalPrices request...')
         const getHistoricalPricesRaw = await Promise.race([
-            rpc.request(publicKey, 'getHistoricalPrices', Buffer.from(JSON.stringify({ coinIds: ['BTC', 'ETH'], from: 0, to: Date.now() }))),
+            rpc.request(publicKey, 'getHistoricalPrices', Buffer.from(JSON.stringify({ coinIds: ['bitcoin', 'ethereum'], from: 0, to: Date.now() }))),
             timeout(15000)
         ])
         const historicalPrices = JSON.parse(getHistoricalPricesRaw.toString('utf-8'))
