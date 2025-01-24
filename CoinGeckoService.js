@@ -10,7 +10,6 @@ module.exports = class CoinGeckoService {
     getPerPageQuery = (count) => `per_page=${count}`;
     getCoinIdsQuery = (coinIds) => `coin_ids=${coinIds.join(',')}`;
 
-    //TODO create a coingecko account and get an API key
     async ping() {
         return (await axios.get(`${this.apiUrl}/ping?${this.apiKeyQuery}`));
     }

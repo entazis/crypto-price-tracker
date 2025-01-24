@@ -36,6 +36,9 @@ module.exports = class HyperStore {
             rpcSeed = crypto.randomBytes(32)
             await hbee.put('rpc-seed', rpcSeed)
         }
+
+        this.fetchPrices();
+
         return { seed: rpcSeed, dht };
     }
 
@@ -47,9 +50,20 @@ module.exports = class HyperStore {
         return this.db.put(key, value);
     }
 
+    async fetchPrices() {
+        const { timestamp, prices } = await this.coinGeckoService.fetchTopCryptoPrices();
+        for (const coinId in prices) {
+            const priceData = {
+                timestamp,
+                ...prices[coinId]
+            };
+            await this.storePrice(coinId, priceData);
+        }
+    }
+
     async storePrice(coinId, priceData) {
         const key = `price:${coinId}:${priceData.timestamp}`;
-        await this.db.put(key, priceData);
+        await this.db.put(key, JSON.stringify(priceData));
     }
 
     async getLatestPrices(coinIds) {
