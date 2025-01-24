@@ -32,20 +32,14 @@ const main = async () => {
     });
 
     rpcServer.respond('getLatestPrices', async (reqRaw) => {
-        const req = JSON.parse(reqRaw.toString('utf-8'));
-
-        //TODO call get latest prices from coingecko
-        const resp = null;
-
+        const {coinIds} = JSON.parse(reqRaw.toString('utf-8'));
+        const resp = await hyperStore.getLatestPrices(coinIds);
         return Buffer.from(JSON.stringify(resp), 'utf-8');
     })
 
     rpcServer.respond('getHistoricalPrices', async (reqRaw) => {
-        const req = JSON.parse(reqRaw.toString('utf-8'));
-
-        //TODO call get historical prices from coingecko
-        const resp = null;
-
+        const {coinIds, from, to} = JSON.parse(reqRaw.toString('utf-8'));
+        const resp = await hyperStore.getHistoricalPrices(coinIds, from, to);
         return Buffer.from(JSON.stringify(resp), 'utf-8');
     })
 }
