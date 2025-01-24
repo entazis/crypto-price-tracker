@@ -1,6 +1,7 @@
 const axios = require('axios');
 
-class CoinGeckoService {
+//TODO refactor, move into sub-directory
+module.exports = class CoinGeckoService {
     apiUrl = process.env.COINGECKO_API_URL;
     apiKey = process.env.COINGECKO_API_KEY;
     apiKeyQuery = `x_cg_demo_api_key=${this.apiKey}`;
@@ -73,5 +74,3 @@ class CoinGeckoService {
         };
     }
 }
-
-module.exports = new CoinGeckoService;

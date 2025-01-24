@@ -2,6 +2,7 @@ const Hypercore = require('hypercore');
 const Hyperbee = require('hyperbee');
 const DHT = require('hyperdht')
 const crypto = require('crypto')
+const CoinGeckoService = require('./CoinGeckoService');
 
 module.exports = class HyperStore {
     constructor(dbPath) {
@@ -11,6 +12,10 @@ module.exports = class HyperStore {
             keyEncoding: 'utf-8',
             valueEncoding: 'binary'
         });
+        this.coinGeckoService = new CoinGeckoService();
+        this.coinGeckoService.ping().then((res) => {
+            console.log(res.data);
+        }).catch(console.error);
     }
 
     async init() {
