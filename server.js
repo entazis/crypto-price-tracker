@@ -7,6 +7,11 @@ const Hypercore = require('hypercore')
 const Hyperbee = require('hyperbee')
 const crypto = require('crypto')
 
+const coinGeckoService = require('./CoinGeckoService');
+coinGeckoService.ping().then((res) => {
+    console.log(res.data);
+}).catch(console.error);
+
 const main = async () => {
     // hyperbee db
     const hcore = new Hypercore('./db/rpc-server')
