@@ -1,0 +1,19 @@
+{
+  "name": "nodejs-tether-challenge",
+  "version": "1.0.0",
+  "description": "Simple crypto currency data gathering solution using Hyperswarm RPC and Hypercores.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/entazis/nodejs-tether-challenge.git"
+  },
+  "author": "entazis",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/entazis/nodejs-tether-challenge/issues"
+  },
+  "homepage": "https://github.com/entazis/nodejs-tether-challenge#readme"
+}
