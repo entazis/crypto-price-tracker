@@ -34,7 +34,7 @@ module.exports = class HyperStore {
         let rpcSeed = (await this.get('rpc-seed'))?.value
         if (!rpcSeed) {
             rpcSeed = crypto.randomBytes(32)
-            await hbee.put('rpc-seed', rpcSeed)
+            await this.db.put('rpc-seed', rpcSeed)
         }
 
         this.fetchPrices();
