@@ -1,6 +1,5 @@
 const axios = require('axios');
 
-//TODO refactor, move into sub-directory
 module.exports = class CoinGeckoService {
     apiUrl = process.env.COINGECKO_API_URL;
     apiKey = process.env.COINGECKO_API_KEY;
@@ -27,49 +26,38 @@ module.exports = class CoinGeckoService {
 
     async fetchTopCryptoPrices(cryptCnt = 5, exchangeCnt = 3) {
         const exchangeIds = await this.getTopExchangeIds(exchangeCnt);
-        const cryptoIds = await this.getTopCryptoIds(cryptCnt);
+        const coinIds = await this.getTopCryptoIds(cryptCnt);
         const prices = {};
 
-        //TODO optimize runtime by fetching prices for all cryptos from an exchange in a single request
-        //TODO ensure you store minimal data considering that dataset might grow large
-        //TODO make sure you store necessary info about exchanges from which price is calculated
-        //TODO handle data quality issues
-        for (const cryptoId of cryptoIds) {
-            prices[cryptoId] = [];
+        for (const exchangeId of exchangeIds) {
+            try {
+                const response = (await axios.get(
+                    `${this.apiUrl}/exchanges/${exchangeId}/tickers?${this.getCoinIdsQuery(coinIds)}&${this.apiKeyQuery}`
+                )).data;
 
-            for (const exchangeId of exchangeIds) {
-                try {
-                    const response = (await axios.get(
-                        `${this.apiUrl}/exchanges/${exchangeId}/tickers?${this.getCoinIdsQuery([cryptoId])}&${this.apiKeyQuery}`
-                    )).data;
-
-                    const usdtTicker = response.tickers?.find(ticker =>
-                        ticker.target === 'USDT' || ticker.target === 'UST'
-                    );
-
-                    if (usdtTicker) {
-                        prices[cryptoId].push({
-                            exchange: exchangeId,
-                            price: usdtTicker.last
-                        });
+                response.tickers?.filter(ticker =>
+                    ticker.target === 'USDT' && coinIds.includes(ticker.coin_id)
+                ).map(ticker => ({
+                    coinId: ticker.coin_id,
+                    exchange: exchangeId,
+                    price: ticker.last
+                })).forEach(result => {
+                    if (!prices[result.coinId]) {
+                        prices[result.coinId] = [];
                     }
-                } catch (error) {
-                    console.error(`Error fetching price for ${cryptoId} from ${exchangeId}:`, error.message);
-                }
+                    prices[result.coinId].push({
+                        exchange: result.exchange,
+                        price: result.price
+                    });
+                });
+            } catch (error) {
+                console.error(`Error fetching price for from ${exchangeId}:`, error.message);
             }
         }
 
         return {
             timestamp: Date.now(),
-            prices: Object.fromEntries(
-                Object.entries(prices).map(([cryptoId, exchangePrices]) => [
-                    cryptoId,
-                    {
-                        averagePrice: exchangePrices.reduce((acc, curr) => acc + curr.price, 0) / exchangePrices.length,
-                        exchanges: exchangePrices
-                    }
-                ])
-            )
+            prices
         };
     }
 }
