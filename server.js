@@ -1,5 +1,6 @@
 'use strict'
 
+require('dotenv').config();
 const RPC = require('@hyperswarm/rpc')
 const DHT = require('hyperdht')
 const Hypercore = require('hypercore')
