@@ -3,6 +3,7 @@ const Hyperbee = require('hyperbee');
 const DHT = require('hyperdht')
 const crypto = require('crypto')
 const CoinGeckoService = require('./CoinGeckoService');
+const cron = require('cron');
 
 module.exports = class HyperStoreService {
     constructor(dbPath) {
@@ -16,6 +17,7 @@ module.exports = class HyperStoreService {
         this.coinGeckoService.ping().then((res) => {
             console.log(res.data);
         }).catch(console.error);
+        this.cron = new cron.CronJob('*/30 * * * * *', this.fetchPrices.bind(this));
     }
 
     async init() {
@@ -37,7 +39,7 @@ module.exports = class HyperStoreService {
             await this.db.put('rpc-seed', rpcSeed)
         }
 
-        this.fetchPrices();
+        this.cron.start();
 
         return { seed: rpcSeed, dht };
     }
