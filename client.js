@@ -54,17 +54,28 @@ const main = async () => {
         console.log('Attempting to connect to server...')
         console.log('Server public key:', publicKey.toString('hex'))
 
-        const payload = { nonce: 126 }
-        const payloadRaw = Buffer.from(JSON.stringify(payload), 'utf-8')
-
-        console.log('Sending request...')
-        const respRaw = await Promise.race([
-            rpc.request(publicKey, 'ping', payloadRaw),
+        console.log('Sending ping request...')
+        const pingRespRaw = await Promise.race([
+            rpc.request(publicKey, 'ping', Buffer.from(JSON.stringify({ nonce: 126 }), 'utf-8')),
             timeout(15000)
         ])
-        
-        const resp = JSON.parse(respRaw.toString('utf-8'))
-        console.log('Response:', resp)
+        console.log('Response:', JSON.parse(pingRespRaw.toString('utf-8')))
+
+        console.log('Sending getLatestPrices request...')
+        const getLatestPricesRaw = await Promise.race([
+            rpc.request(publicKey, 'getLatestPrices', Buffer.from(JSON.stringify({ coinIds: ['BTC', 'ETH'] }), 'utf-8')),
+            timeout(15000)
+        ])
+        const latestPrices = JSON.parse(getLatestPricesRaw.toString('utf-8'))
+        console.log('Response:', latestPrices)
+
+        console.log('Sending getHistoricalPrices request...')
+        const getHistoricalPricesRaw = await Promise.race([
+            rpc.request(publicKey, 'getHistoricalPrices', Buffer.from(JSON.stringify({ coinIds: ['BTC', 'ETH'], from: 0, to: Date.now() }))),
+            timeout(15000)
+        ])
+        const historicalPrices = JSON.parse(getHistoricalPricesRaw.toString('utf-8'))
+        console.log('Response:', historicalPrices)
     } catch (err) {
         console.error('Error:', err)
     } finally {
