@@ -5,40 +5,47 @@ const crypto = require('crypto')
 const CoinGeckoService = require('./CoinGeckoService');
 const cron = require('cron');
 
+//TODO move to separate file, move to env, parse
+const hyperbeeOpts = {
+    keyEncoding: 'utf-8',
+    valueEncoding: 'binary'
+};
+const getDHTOpts = (dhtSeed) => ({
+    port: 40001,
+    keyPair: DHT.keyPair(dhtSeed),
+    bootstrap: [{ host: '127.0.0.1', port: 30001 }] // note boostrap points to dht that is started via cli
+});
+const dhtSeedKey = 'dht-seed';
+const rpcSeedKey = 'rpc-seed';
+
 module.exports = class HyperStoreService {
     constructor(dbPath) {
         this.dbPath = dbPath;
         this.core = new Hypercore(dbPath);
-        this.db = new Hyperbee(this.core, {
-            keyEncoding: 'utf-8',
-            valueEncoding: 'binary'
-        });
+        this.db = new Hyperbee(this.core, hyperbeeOpts);
         this.coinGeckoService = new CoinGeckoService();
         this.coinGeckoService.ping().then((res) => {
             console.log(res.data);
         }).catch(console.error);
-        this.cron = new cron.CronJob('*/30 * * * * *', this.fetchPrices.bind(this));
+        this.cron = new cron.CronJob(process.env.CRON_EXPRESSION, this.fetchPrices.bind(this));
     }
 
     async init() {
         await this.db.ready();
-        let dhtSeed = (await this.get('dht-seed'))?.value;
+        let dhtSeed = (await this.get(dhtSeedKey))?.value;
         if (!dhtSeed) {
-            dhtSeed = crypto.randomBytes(32)
-            await this.set('dht-seed', dhtSeed)
+            dhtSeed = crypto.randomBytes(32);
+            await this.set(dhtSeedKey, dhtSeed);
         }
-        const dht = new DHT({
-            port: 40001,
-            keyPair: DHT.keyPair(dhtSeed),
-            bootstrap: [{ host: '127.0.0.1', port: 30001 }] // note boostrap points to dht that is started via cli
-        });
+        const dht = new DHT(getDHTOpts(dhtSeed));
         await dht.ready();
-        let rpcSeed = (await this.get('rpc-seed'))?.value
+        let rpcSeed = (await this.get(rpcSeedKey))?.value
         if (!rpcSeed) {
             rpcSeed = crypto.randomBytes(32)
-            await this.db.put('rpc-seed', rpcSeed)
+            await this.db.put(rpcSeedKey, rpcSeed)
         }
 
+        this.fetchPrices();
         this.cron.start();
 
         return { seed: rpcSeed, dht };
@@ -57,9 +64,9 @@ module.exports = class HyperStoreService {
         for (const coinId in prices) {
             const priceData = {
                 timestamp,
-                ...prices[coinId]
+                prices: prices[coinId]
             };
-            await this.storePrice(coinId, priceData);
+            await this.storePrice(coinId, { timestamp, prices });
         }
     }
 
@@ -70,7 +77,6 @@ module.exports = class HyperStoreService {
 
     async getLatestPrices(coinIds) {
         const prices = {};
-        //TODO is there an efficient way to fetch prices for multiple coins in a single request?
         //TODO get the latest price for each coin
         for (const coinId of coinIds) {
             const stream = this.db.createReadStream({
@@ -100,7 +106,4 @@ module.exports = class HyperStoreService {
         }
         return prices;
     }
-
-    //TODO implement a scheduling mechanism to run the data pipeline at regular intervals e.g.every 30s
-    //TODO ensure the pipeline can be executed both on - demand and as a scheduled task
 }
