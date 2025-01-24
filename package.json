@@ -4,6 +4,8 @@
   "description": "Simple crypto currency data gathering solution using Hyperswarm RPC and Hypercores.",
   "main": "index.js",
   "scripts": {
+    "server": "node server.js",
+    "client": "node client.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
