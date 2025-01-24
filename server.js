@@ -38,12 +38,18 @@ const main = async () => {
     // setup rpc server
     const rpc = new RPC({ seed: rpcSeed, dht })
     const rpcServer = rpc.createServer()
+    rpcServer.on('connection', (conn) => {
+        console.log('New connection received')
+        conn.on('error', (err) => console.error('Connection error:', err))
+    })
+    rpcServer.on('error', (err) => console.error('Server error:', err))
     await rpcServer.listen()
     console.log('rpc server started listening on public key:', rpcServer.publicKey.toString('hex'))
     // rpc server started listening on public key: 763cdd329d29dc35326865c4fa9bd33a45fdc2d8d2564b11978ca0d022a44a19
 
     // bind handlers to rpc server
     rpcServer.respond('ping', async (reqRaw) => {
+        console.log('ping request:', reqRaw.toString('utf-8'))
         // reqRaw is Buffer, we need to parse it
         const req = JSON.parse(reqRaw.toString('utf-8'))
 
