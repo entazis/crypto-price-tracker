@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/entazis/nodejs-tether-challenge/issues"
   },
-  "homepage": "https://github.com/entazis/nodejs-tether-challenge#readme"
+  "homepage": "https://github.com/entazis/nodejs-tether-challenge#readme",
+  "dependencies": {
+    "@hyperswarm/rpc": "3.3.2",
+    "hyperbee": "2.21.2",
+    "hypercore": "10.38.2",
+    "hyperdht": "6.20.1"
+  }
 }
