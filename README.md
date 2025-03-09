@@ -19,8 +19,8 @@ A Node.js application that gathers cryptocurrency price data using Hyperswarm RP
 
 1. Clone the repository:
 ```
-git clone https://github.com/entazis/nodejs-tether-challenge.git
-cd nodejs-tether-challenge
+git clone https://github.com/entazis/crypto-price-tracker.git
+cd crypto-price-tracker
 ```
 
 2. Install dependencies:
